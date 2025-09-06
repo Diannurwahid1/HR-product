@@ -1,0 +1,239 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "karyawan", "kontrak"]
+}
+
+model User {
+  id    String @id @default(uuid())
+  email String @unique
+  name  String
+  password String
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@schema("public")
+}
+
+model Employee {
+  id             String   @id @default(uuid())
+  nik            String   @unique // NIK karyawan, format 3 huruf kode divisi + 5 digit angka
+  namaLengkap    String
+  email          String   @unique
+  nomorTelepon   String
+  tanggalLahir   DateTime
+  jenisKelamin   String
+  nomorRekening  String?
+  alamat         String
+  username       String   @unique
+  password       String
+  foto           String?  // file path or URL
+  ktp            String?  // file path or URL
+  npwp           String?  // file path or URL
+  ijazah         String?  // file path or URL
+  cv             String?  // file path or URL
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  status         String   @default("Aktif")
+
+  idDepartment   String
+  department     Department @relation(fields: [idDepartment], references: [id])
+
+  contracts      Contract[]
+  payrolls       Payroll[]
+  masterGajiPokoks MasterGajiPokok[]
+
+  @@schema("karyawan")
+}
+
+model Contract {
+<<<<<<< HEAD
+  id              String   @id @default(uuid())
+  nomorKontrak    String?   @unique
+  employeeId      String
+  departemen      String
+  posisiJabatan   String
+  atasanLangsung  String
+  jenisKontrak    String
+  tanggalMulai    DateTime
+  tanggalBerakhir DateTime
+  durasiKontrak   String
+  periodeReview   String?
+  gajiPokok       Int
+  tunjangan       Int?
+  uangMakan       Int
+  uangTransport   Int?
+  templateKontrak String?
+  dokumenKontrak  String?
+  catatan         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  employee        Employee @relation(fields: [employeeId], references: [id])
+=======
+  id               String   @id @default(uuid())
+  employeeId       String
+  employee         Employee @relation(fields: [employeeId], references: [id])
+  departemen       String
+  posisiJabatan    String
+  atasanLangsung   String
+  jenisKontrak     String   // PKWT/PKWTT
+  tanggalMulai     DateTime
+  tanggalBerakhir  DateTime
+  durasiKontrak    String
+  periodeReview    String?
+  gajiPokok        Int
+  tunjangan        Int?
+  uangMakan        Int
+  uangTransport    Int?
+  templateKontrak  String?
+  dokumenKontrak   String?
+  catatan          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+>>>>>>> parent of c568177 (Update UI/UX Management Karyawan)
+
+  @@schema("kontrak")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  permissions RolePermission[]
+  users       User[]
+
+  @@schema("public")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  roles       RolePermission[]
+
+  @@schema("public")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  allowed      Boolean  @default(false)
+  role         Role     @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@schema("public")
+}
+
+model Bank {
+  id    String @id @default(uuid())
+  name  String
+  code  String @unique
+  logo  String?
+  @@schema("public")
+}
+
+model WorkShift {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  startTime   String   // format HH:mm
+  endTime     String   // format HH:mm
+  description String?
+  @@schema("public")
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  employees   Employee[]
+  @@schema("public")
+}
+
+model Location {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  address     String?
+  description String?
+  @@schema("public")
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  date        DateTime
+  description String?
+  @@schema("public")
+}
+
+model Payroll {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id])
+  periodeBulan Int      // 1-12
+  periodeTahun Int      // 4 digit tahun
+  tanggalProses DateTime @default(now())
+  totalGaji    Int
+  status       String   // e.g. 'Draft', 'Final', 'Paid'
+  slipUrl      String?  // file path or URL slip gaji (optional)
+  components   PayrollComponent[]
+
+  @@unique([employeeId, periodeBulan, periodeTahun])
+  @@schema("public")
+}
+
+model PayrollComponent {
+  id         String   @id @default(uuid())
+  payrollId  String
+  payroll    Payroll  @relation(fields: [payrollId], references: [id])
+  nama       String   // Nama komponen (Gaji Pokok, Tunjangan, Potongan, etc)
+  tipe       String   // 'tunjangan' | 'potongan' | 'gaji_pokok'
+  nominal    Int
+  keterangan String?
+
+  @@schema("public")
+}
+
+model MasterGajiPokok {
+  id            String   @id @default(uuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id])
+  nominal       Int
+  berlakuMulai  DateTime
+  berlakuSampai DateTime?
+  status        String   // Aktif/Nonaktif
+  keterangan    String?
+
+  @@schema("public")
+}
+
+model MasterKomponenGaji {
+  id            String   @id @default(uuid())
+  nama          String
+  tipe          String   // 'tunjangan' | 'potongan'
+  defaultNominal Int
+  status        String   // Aktif/Nonaktif
+  keterangan    String?
+
+  @@schema("public")
+}
+
+model JobPosition {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  // relasi ke kontrak bisa ditambah nanti jika perlu
+  @@schema("public")
+}
